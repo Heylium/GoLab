@@ -1,2 +1,2 @@
-# goLab
-A repo to explore golang. 
+# GoLab
+A repo to explore Golang. 
