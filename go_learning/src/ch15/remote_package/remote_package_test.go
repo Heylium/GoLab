@@ -2,7 +2,7 @@ package remote_package
 
 /**
 import remote package using(using -u params to force update all package):
-got get -u <remote_package_name>
+go get -u <remote_package_name>
 */
 
 import (
