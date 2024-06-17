@@ -1,6 +1,7 @@
 package reflect
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -27,18 +28,6 @@ func CheckType(v interface{}) {
 func TestBasicType(t *testing.T) {
 	var f float64 = 12
 	CheckType(f)
-}
-
-func TestDeepEqual(t *testing.T) {
-	a := map[int]string{1: "one", 2: "two", 3: "three"}
-	b := map[int]string{1: "one", 2: "two", 3: "three"}
-
-	t.Log("a == b ?", reflect.DeepEqual(a, b))
-
-	//s1 := []int{1, 2, 3}
-	//s2 := []int{1, 2, 3}
-	//s3 := []int{1, 2, 3}
-
 }
 
 type Employee struct {
@@ -68,4 +57,60 @@ func TestInvokeByName(t *testing.T) {
 
 	reflect.ValueOf(e).MethodByName("UpdateAge").Call([]reflect.Value{reflect.ValueOf(1)})
 	t.Log("Updated Age:", e)
+}
+
+func TestDeepEqual(t *testing.T) {
+	a := map[int]string{1: "one", 2: "two", 3: "three"}
+	b := map[int]string{1: "one", 2: "two", 3: "three"}
+
+	t.Log("a == b ?", reflect.DeepEqual(a, b))
+
+	s1 := []int{1, 2, 3}
+	s2 := []int{1, 2, 3}
+	s3 := []int{1, 2, 3}
+
+	t.Log("s1 == s1 ?", reflect.DeepEqual(s1, s1))
+	t.Log("s2 == s3 ?", reflect.DeepEqual(s2, s3))
+}
+
+func fillBySettings(st interface{}, settings map[string]interface{}) error {
+	if reflect.TypeOf(st).Kind() != reflect.Ptr {
+		if reflect.TypeOf(st).Elem().Kind() != reflect.Struct {
+			return errors.New("first parameter should be a pointer to the struct type")
+		}
+	}
+	if settings == nil {
+		return errors.New("settings should not be nil")
+	}
+
+	var (
+		field reflect.StructField
+		ok    bool
+	)
+	for k, v := range settings {
+		if field, ok = (reflect.ValueOf(st)).Elem().Type().FieldByName(k); !ok {
+			continue
+		}
+		if field.Type == reflect.TypeOf(v) {
+			vstr := reflect.ValueOf(st)
+			vstr = vstr.Elem()
+			vstr.FieldByName(k).Set(reflect.ValueOf(v))
+		}
+	}
+	return nil
+}
+
+func TestFillNameAndAge(t *testing.T) {
+	settings := map[string]interface{}{"Name": "mike", "Age": 30}
+	e := Employee{}
+	if err := fillBySettings(&e, settings); err != nil {
+		t.Fatal(err)
+	}
+	t.Log(e)
+
+	c := new(Customer)
+	if err := fillBySettings(c, settings); err != nil {
+		t.Fatal(err)
+	}
+	t.Log(*c)
 }
