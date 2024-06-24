@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+/*
+*
+cmd:
+1. go build prof.go
+2. ./prof
+3. go build prof.go
+4. ./prof
+5. go tool pprof prof cpu.prof
+*/
 const (
 	col = 10000
 	row = 10000
